@@ -13,8 +13,8 @@ function createPromise(position, delay) {
   });
 }
 
-const promiseForm = document.getElementById('promiseForm');
-promiseForm.addEventListener('submit', async e => {
+const promiseForm = document.querySelector('.form');
+promiseForm.addEventListener('submit', e => {
   e.preventDefault();
 
   const formData = new FormData(promiseForm);
@@ -22,19 +22,27 @@ promiseForm.addEventListener('submit', async e => {
   const delayStep = parseInt(formData.get('step'));
   const amount = parseInt(formData.get('amount'));
 
+  const promises = [];
+
   for (let i = 0; i < amount; i++) {
     const position = i + 1;
     const delay = firstDelay + i * delayStep;
-
-    try {
-      const result = await createPromise(position, delay);
-      Notiflix.Notify.success(
-        `✅ Fulfilled promise ${result.position} in ${result.delay}ms`
-      );
-    } catch (error) {
-      Notiflix.Notify.failure(
-        `❌ Rejected promise ${error.position} in ${error.delay}ms`
-      );
-    }
+    promises.push(createPromise(position, delay));
   }
+
+  Promise.all(promises)
+    .then(results => {
+      results.forEach(result => {
+        Notiflix.Notify.success(
+          `✅ Fulfilled promise ${result.position} in ${result.delay}ms`
+        );
+      });
+    })
+    .catch(errors => {
+      errors.forEach(error => {
+        Notiflix.Notify.failure(
+          `❌ Rejected promise ${error.position} in ${error.delay}ms`
+        );
+      });
+    });
 });
